@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        @font-face { font-family: 'S-CoreDream-2ExtraLight'; src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-2ExtraLight.woff') format('woff'); font-weight: normal; font-style: normal; }
+        body {font-family: 'S-CoreDream-2ExtraLight'; color: #fff; background: #21252c; width: 95vw; height: 95vh; display: flex; flex-direction: column; justify-content: center; align-items: center;}
+        table { border-collapse: collapse;}
+        td { width: 6vw; height: 6vw; border: 1px solid #fff; text-align: center; line-height: 6vw; font-size: 3vw; font-weight: bold;}
+        p { width: 60%; font-size: 1.2vw; word-break: keep-all;}
+    </style>
+</head>
+<body>
+    <script>
+        const data = [];
+        const rows = [];
+        const cols = [];
+        let tCount = 0;
+        const table = document.createElement('table');
+        const result = document.createElement('h1');
+        const desc = document.createElement('p');
+        desc.textContent = 
+        '틱택토란 게임은 3x3의 게임판안에서 대각선이나 일직선으로 같은 세개의 모양을 한줄로 만드는 쪽이 승리하는 게임입니다. javascript로 table태그를 만들고 그 안에 3개의 tr안에 각각 3개의 td를 추가하였습니다. 각 태그를 생성하면서 배열에 바로 추가하여 데이터를 관리 할 수 있게했습니다. 생선된 td태그를 클릭했을때 저장해놓은 배열에 indexOf메서드를 사용하여 클릭이벤트가 발생한 td가 몇번 째 줄의 몇번째 요소인지 알수있게 했습니다. 해당요소의 textContent가 비어있으면 그자리에 해당턴의 텍스트를 표시해주고 매순간 승리조건을 체크하여 승리하거나 무승부가 아니라면 filter메서드로 textContent가 비어있는 배열을 받아서 그중 랜덤으로 하나 선택하여 컴퓨터가 표시하게됩니다. 한쪽이 승리하거나 칸이 모두차게되면 settimeout함수로 지정된시간 후에 table안의 html요소를 비우고 데이터 배열들과 함께 초기값으로 초기화 됩니다.'
+        document.body.appendChild(table);
+        document.body.appendChild(result);
+        document.body.appendChild(desc);
+        result.textContent = 'TIC-TAC-TOE';
+        let turn = 'X';
+
+        const flagCheck = (row,col,tCount) => {
+            let stopFlag = false;
+            if(tCount >= cols.length){
+                stopFlag = true;
+                result.textContent = '무승부입니다.';
+            }else{
+                if( data[row][0].textContent === turn &&
+                    data[row][1].textContent === turn &&
+                    data[row][2].textContent === turn
+                ){
+                    stopFlag = true;
+                    result.textContent = turn + '님이 승리하였습니다.';
+                }
+
+                if( data[0][col].textContent === turn &&
+                    data[1][col].textContent === turn &&
+                    data[2][col].textContent === turn
+                ){
+                    stopFlag = true;
+                    result.textContent = turn + '님이 승리하였습니다.';
+                }
+
+                if( data[0][0].textContent === turn &&
+                    data[1][1].textContent === turn &&
+                    data[2][2].textContent === turn
+                ){
+                    stopFlag = true;
+                    result.textContent = turn + '님이 승리하였습니다.';
+                }
+
+                if( data[0][2].textContent === turn &&
+                    data[1][1].textContent === turn &&
+                    data[2][0].textContent === turn
+                ){
+                    stopFlag = true;
+                    result.textContent = turn + '님이 승리하였습니다.';
+                }
+            }
+            return stopFlag;
+        }
+
+        const tdClick = e => {
+            const target = e.currentTarget;
+            const parentTd = target.parentNode;
+            const row = rows.indexOf(parentTd);
+            const col = data[row].indexOf(target);
+
+            if(target.textContent === ''){
+                if(!(turn === 'O')){
+                    tCount++;
+                    console.log('빈칸');
+                    target.textContent = turn;
+
+                    let flag = flagCheck(row,col,tCount); // 승부여부 체크
+                    if(!flag){ // 끝나지않았다면 턴바꿈
+                        
+                        let empty = cols.filter((ele) => {
+                            return !ele.textContent;
+                        });
+                        console.log(empty);
+                        const comSelect = Math.floor(Math.random()*empty.length);
+                        turn = 'O';
+                        setTimeout(() => {
+                            empty[comSelect].textContent = turn;
+                            tCount++;
+                            const target = cols[comSelect];
+                            const parentTd = target.parentNode;
+                            const row = rows.indexOf(parentTd);
+                            const col = data[row].indexOf(target);
+
+                            let flag = flagCheck(row,col,tCount);
+                            if(!flag){
+                                turn = 'X';
+                            }else{
+                                setTimeout(() => {
+                                    reset();
+                                },2000);
+                            }
+                        }, 500);
+                    }else{
+                        setTimeout(() => {
+                            reset();
+                        },2000);
+                    }
+                }
+            }else{
+                console.log('이미있는칸');
+            }
+        }
+
+        const init = () => {
+            data.length = 0;
+            rows.length = 0;
+            cols.length = 0;
+            for(let i = 0; i < 3; i++){
+                const tr = document.createElement('tr');
+                rows.push(tr);
+                data.push([]);
+                for(let j = 0; j < 3; j++){
+                    const td = document.createElement('td');
+                    data[i].push(td);
+                    td.addEventListener('click', tdClick); 
+                    cols.push(td);
+                    tr.appendChild(td);
+                }
+                table.appendChild(tr);
+            }
+            
+        }
+
+        init();
+
+        const reset = () => {
+            table.innerHTML = '';
+            result.textContent = 'TIC-TAC-TOE';
+            init();
+            tCount = 0;
+        }
+    </script>
+</body>
+</html>
