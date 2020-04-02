@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lotto</title>
+    <style>
+        /* body, h1, h2, p { margin: 0; padding: 0;} */
+        body {font-family: 'S-CoreDream-2ExtraLight'; color: #fff; background: #21252c; width: 95vw; height: 95vh; display: flex; flex-direction: column; justify-content: center; align-items: center;}
+        table { border-collapse: collapse; }
+        .cont { height: 6vw;}
+        .btn { padding: 1vw 2vw; margin-top: 5vw; cursor: pointer;}
+    </style>
+</head>
+<body>
+    <h1>LOTTO 추첨기</h1>
+    <h2>추첨 숫자</h2>
+    <div class="cont cont1"></div>
+    <h2>보너스 숫자</h2>
+    <div class="cont cont2"></div>
+    <button class="btn">다시하기</button>
+    <script>
+        let flag = false;
+        document.querySelector('.btn').addEventListener('click',() => {
+            if(flag){
+                flag = false;
+                init();
+            }
+        });
+
+        const init = () => {
+            document.querySelectorAll('.cont').forEach(ele => {
+                ele.innerHTML = '';
+            })
+            let array = Array(45).fill().map((ele,index) => {
+                return (index+1);
+            });
+
+            let ranArray = [];
+            while(array.length > 0){
+                const ranNum = array.splice(Math.floor(Math.random()*array.length),1)[0];
+                ranArray.push(ranNum);
+            }
+
+            console.log(ranArray);
+            
+            let choiceNum = ranArray.splice(0,6);
+            let sortNum = choiceNum.sort((p,c) => {return p-c});
+            let bonusNum = ranArray[ranArray.length-1];
+
+            // console.log('추첨숫자',sortNum,'보너스숫자',bonusNum);
+
+            for(let i = 0; i < sortNum.length; i++){
+                setTimeout(() => {
+                    ballStyle(sortNum[i],'.cont1');
+                    },500*i)
+                }
+                setTimeout(() => {
+                    ballStyle(bonusNum,'.cont2');
+                    flag = true;
+                }, 3000);
+
+                const ballStyle = (ele, container) => {
+                const cont = document.createElement('div');
+                cont.textContent = ele;
+                cont.style.display = 'inline-block';
+                cont.style.margin = '0 1.5vw';
+                cont.style.width = '6vw';
+                cont.style.height = '6vw';
+                cont.style.borderRadius = '50%';
+                cont.style.border = '1px solid #fff';
+                cont.style.lineHeight = '6vw';
+                cont.style.textAlign = 'center';
+                cont.style.fontSize = '1.5vw';
+
+                if(ele <= 10){
+                    cont.style.background = 'orange';
+                }else if(ele <= 20){
+                    cont.style.background = 'blue';
+                }else if(ele <= 30){
+                    cont.style.background = 'red';
+                }else if(ele <= 40){
+                    cont.style.background = 'black';
+                }else{
+                    cont.style.background = 'green';
+                }
+
+                document.querySelector(container).appendChild(cont);
+            }
+        }
+
+        init();
+
+    </script>
+</body>
+</html>
