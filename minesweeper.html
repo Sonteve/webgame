@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MINESWEEPER</title>
+    <style>
+        body { background: #21252c; display:flex; flex-direction: column; justify-content: center; align-items: center;}
+        ul,li { list-style: none;}
+        a { text-decoration: none; color: #000; font-weight: bold;}
+        .level {display: inline-block; }
+        .level ul { display: flex;}
+        .level li { flex-grow: 1; text-align: center; border: 1px solid #000;  padding: 1vw 2vw; background: #fff;}
+        .level li:not(:last-child) { margin-right: -1px;}
+        .level li.on { background: #f57c00; }
+        .level li.on a { color: #fff;}
+
+        #contents { display: flex; justify-content: center;}
+
+        table { border-collapse: collapse;}
+        td { 
+            width: 24px; height: 24px; 
+            background: url('./images/minesweeper.png') no-repeat; background-position: -1px -62px; 
+            padding: 0; margin: 0;
+            text-align: center; line-height: 24px;
+        }
+        td.on { background-position: -1px -37px;}
+        td.question { background-position: -126px -62px;}
+        td.flag { background-position: -26px -62px;}
+        td.mine { background-position: -101px -62px;}
+        td.redMine { background-position: -51px -62px;}
+
+        td.one { background-position: -26px -37px; }
+        td.two { background-position: -51px -37px; }
+        td.three { background-position: -76px -37px; }
+        td.four { background-position: -101px -37px; }
+        td.five { background-position: -126px -37px; }
+        td.six { background-position: -151px -37px; }
+        td.seven { background-position: -176px -37px; }
+        td.eight  { background-position: -191px -37px; }
+
+
+        .btn-start { display: inline-block; margin-left: 2vw; padding: 1vw 2vw;}
+    </style>
+</head>
+<body>
+    <div id="system">
+        <div class="level">
+            <ul>
+                <li><a href="#">초급</a></li>
+                <li><a href="#">중급</a></li>
+                <li><a href="#">고급</a></li>
+            </ul>
+        </div>
+        <button class="btn-start">시작</button>
+        <div id="contents">
+            <table class="board"></table>
+        </div>
+    </div>
+    <script>
+        function Level(level){
+            if(level === 0){
+                this.row = 9;
+                this.col = 9;
+                this.mine = 10;
+                this.winCount = 71;
+            }else if(level === 1){
+                this.row = 16;
+                this.col = 16;
+                this.mine = 40;
+                this.winCount = 216;
+            }else if(level === 2){
+                this.row = 16;
+                this.col = 30;
+                this.mine = 99;
+                this.winCount = 381;
+            }
+
+        }
+        const board = document.querySelector('.board');
+        let dataset = [];
+        let curLevel;
+        let allTd = [];
+        let winCount = 0;
+        let stopFlag = false;
+        
+        // let mineArr = [];
+
+        document.querySelectorAll('.level li').forEach( (ele, index) => {
+            ele.setAttribute('data-level', index);
+            ele.addEventListener('click', e => {
+                document.querySelectorAll('.level li').forEach( ele => {
+                    ele.classList.remove('on');
+                    e.currentTarget.classList.add('on');
+                });
+            });
+        });
+        
+
+        document.querySelector('.btn-start').addEventListener('click',() => {
+            stopFlag = false;
+            document.querySelector('#contents .board').innerHTML = '';
+            dataset = [];
+            document.querySelectorAll('.level li').forEach( (ele,index) => {
+                if( ele.classList.contains('on') ){
+                    curLevel =  new Level(parseInt(ele.dataset.level));
+                    for( let i = 0; i < curLevel.row; i++){
+                        const tr = document.createElement('tr');
+                        dataset.push([]);
+                        for( let j = 0; j < curLevel.col; j++){
+                            const td = document.createElement('td');
+                            dataset[i].push(0);
+                            allTd.push(td);
+                            tr.appendChild(td);
+                            td.addEventListener('click', tdClick);
+                            td.addEventListener('contextmenu',rClick);
+                        }
+                        document.querySelector('#contents .board').appendChild(tr);
+                    }
+                    mineMaker();
+                }
+            })
+        })
+
+        const mineMaker = () => {
+            const arr =  Array(curLevel.row*curLevel.col).fill().map((ele,index) => {
+                return index;
+            });
+            for( let i = 0; i < curLevel.mine; i++){
+                const ranNum = arr.splice(Math.floor(Math.random()*arr.length),1)[0];
+                const rowIndex = parseInt(ranNum/curLevel.col);
+                const colIndex = (ranNum%curLevel.col);
+
+                dataset[rowIndex][colIndex] = 'X';
+                document.querySelector('.board').children[rowIndex].children[colIndex].textContent = 'X';
+            }
+        }
+        const rClick = e => {// 우클릭시
+            e.preventDefault(); // 기본실행 막아주고 클릭한 요소의 table내에서의 행과 열을 찾는다.
+            if(!stopFlag){
+                const parentTd = e.currentTarget.parentNode;
+                const parentTr = e.currentTarget.parentNode.parentNode;
+                const rowIndex = Array.prototype.indexOf.call(parentTr.children, parentTd);
+                const colIndex = Array.prototype.indexOf.call(parentTd.children, e.currentTarget);
+
+                if( !board.children[rowIndex].children[colIndex].classList.contains('question') && 
+                    !board.children[rowIndex].children[colIndex].classList.contains('flag')
+                ){
+                    e.currentTarget.classList.add('question'); // 아무 클래스도 없으면 물음표
+                }else if( board.children[rowIndex].children[colIndex].classList.contains('question')){
+                    e.currentTarget.classList.remove('question');
+                    e.currentTarget.classList.add('flag'); //물음표가 있다면 깃발로
+                }else{
+                    e.currentTarget.classList.remove('question');
+                    e.currentTarget.classList.remove('flag'); //  깃발이라면 원래대로
+                }
+            }            
+        }
+
+        const tdClick = e => { // td 클릭시
+            if(!stopFlag){
+                    //클릭한 td와 대응하는 dataset에 접근하여 클릭되었는지 지뢰가 있는지 확인
+                const parentTd = e.currentTarget.parentNode;
+                const parentTr = e.currentTarget.parentNode.parentNode;
+                const rowIndex = Array.prototype.indexOf.call(parentTr.children, parentTd);            
+                const colIndex = Array.prototype.indexOf.call(parentTd.children, e.currentTarget);
+                // console.log('rowIndex',rowIndex);
+                // console.log(colIndex);
+
+                if(dataset[rowIndex][colIndex] === 0){ // 클릭되지않고 지뢰가 없다면
+                    dataset[rowIndex][colIndex] = 1; // dataset상에 클릭된 상태로 표시
+                    winCount++; // 승리카운트 증가
+                    board.children[rowIndex].children[colIndex].classList.remove('flag');
+                    board.children[rowIndex].children[colIndex].classList.remove('question');
+                    board.children[rowIndex].children[colIndex].classList.add('on'); //클릭한 모양으로 background-position 이동
+
+                    let near = [ dataset[rowIndex][colIndex - 1], dataset[rowIndex][colIndex + 1]];  //위 아래 행이 존재할때 담고
+                    if(dataset[rowIndex-1]){
+                        near = near.concat(dataset[rowIndex - 1][colIndex - 1] , dataset[rowIndex - 1][colIndex], dataset[rowIndex - 1][colIndex + 1]);
+                    }
+                    if(dataset[rowIndex+1]){
+                        near = near.concat(dataset[rowIndex + 1][colIndex - 1] , dataset[rowIndex + 1][colIndex], dataset[rowIndex + 1][colIndex + 1]);
+                    }
+
+                    console.log('near',near);
+
+                    let nearMineCount = near.filter( ele => { // 존재하는 주변 data중 지뢰가 있는칸만 배열로 가져와서 지뢰 개수 카운트
+                        return ele === 'X';
+                    }).length;
+
+                    console.log('nearMineCount',nearMineCount);
+
+                    if(nearMineCount === 0){ // 주변 8칸에 지뢰가 하나도 없으면
+                        let nearTd = [ board.children[rowIndex].children[colIndex - 1], board.children[rowIndex].children[colIndex + 1]];
+                        //주변8칸 중에 존재하는 td들을 배열에 담아서
+                        if( board.children[rowIndex-1]){
+                            nearTd = nearTd.concat( board.children[rowIndex-1].children[colIndex-1], board.children[rowIndex-1].children[colIndex],board.children[rowIndex-1].children[colIndex+1]);
+                        }
+                        if( board.children[rowIndex+1]){
+                            nearTd = nearTd.concat( board.children[rowIndex+1].children[colIndex-1], board.children[rowIndex+1].children[colIndex],board.children[rowIndex+1].children[colIndex+1]);
+                        }
+                        
+                        nearTd.filter(ele => { // 존재하는 배열이면
+                            return !!ele;
+                        }).forEach((ele,index) => {// 그 요소들의 인덱스값을 찾아서 대응하는 td에 접근하여
+                            const parentTd = ele.parentNode;
+                            const parentTr = ele.parentNode.parentNode;
+                            const rowIndex = Array.prototype.indexOf.call(parentTr.children, parentTd);
+                            const colIndex = Array.prototype.indexOf.call(parentTd.children, ele);
+
+                            if(dataset[rowIndex][colIndex] !== 1){ //dataindex가 0으로 클릭된 상태가 아니라면 클릭
+                                ele.click();
+                            }
+                        })                                       
+                    }
+                    numbering(e.currentTarget, nearMineCount); // 주변 지뢰 갯수에 따라 background-position 다르게 표시해줌
+                    
+                }else if(dataset[rowIndex][colIndex] === 'X'){  // 지뢰를 클릭했다면
+                    stopFlag = true; // 이벤트 중지
+                    allTd.forEach((ele,index) => { //모든 td를 담고있는 배열의 각 td에 접근하여
+                        const rowIndex = parseInt(index/curLevel.col);
+                        const colIndex = (index%curLevel.col);
+                        if(dataset[rowIndex][colIndex] === 'X'){  // 대응하는 dataset 값이 'X'인경우(지뢰인경우)
+                            ele.classList.add('mine'); // background-position 일반지뢰로바꿔줌
+                        }
+                    })
+                    e.currentTarget.classList.remove('mine');
+                        board.children[rowIndex].children[colIndex].classList.remove('flag'); 
+                    e.currentTarget.classList.add('redMine'); // 클릭한 지뢰에는 빨간 지뢰로 바꿔줌
+                    // console.log(mine);
+                }         
+            }
+            
+        }
+        const numbering = (target, nearMineCount) => {
+            //클릭시 주변 지뢰 개수에 대응하는 background-position으로 바꿔주는 함수
+            if(nearMineCount === 1){
+                target.classList.add('one');
+            }else if(nearMineCount === 2){
+                target.classList.add('two');
+            }else if(nearMineCount === 3){
+                target.classList.add('three');
+            }else if(nearMineCount === 4){
+                target.classList.add('fout');
+            }else if(nearMineCount === 5){
+                target.classList.add('five');
+            }else if(nearMineCount === 6){
+                target.classList.add('six');
+            }else if(nearMineCount === 7){
+                target.classList.add('seven');
+            }else if(nearMineCount === 8){
+                target.classList.add('eight');
+            }
+        }
+
+
+       
+    </script>
+    
+</body>
+</html>
