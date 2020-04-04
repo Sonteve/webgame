@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MINESWEEPER</title>
     <style>
-        body { background: #21252c; display:flex; flex-direction: column; justify-content: center; align-items: center;}
+        @font-face { font-family: 'S-CoreDream-2ExtraLight'; src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-2ExtraLight.woff') format('woff'); font-weight: normal; font-style: normal; }
+        body { color: #fff; font-family: 'S-CoreDream-2ExtraLight'; background: #21252c; display:flex; flex-direction: column; justify-content: center; align-items: center;}
         ul,li { list-style: none;}
         a { text-decoration: none; color: #000; font-weight: bold;}
         .level {display: inline-block; }
@@ -41,6 +42,7 @@
 
 
         .btn-start { display: inline-block; margin-left: 2vw; padding: 1vw 2vw;}
+        .desc { width: 60%; margin-top: 3vw;}
     </style>
 </head>
 <body>
@@ -53,9 +55,20 @@
             </ul>
         </div>
         <button class="btn-start">시작</button>
+        
+        <input type="checkbox" id="test">
+        <label for="test">테스트모드</label>
         <div id="contents">
             <table class="board"></table>
-        </div>
+        </div>        
+    </div>
+    <div class="desc">
+        난이도에 따라 9x9, 16x16, 16x30 로 되어있으며 난이도 선택 후 시작버튼 클릭시 각각에 li의 data값을 받아와 생성자함수를 통해
+        난이도에 따른 객체를 생성하여 데이터를 가져오게 했습니다. table태그를 선택하여 javascript로 tr과 td를 추가하였으며 boolean변수를 써서
+        true라면 게임이 끝난것으로 간주하여 모든 이벤트가 동작불가하게 하고 false시 정상적으로 클릭 이벤트가 동작하도록 하였습니다.
+        모든 클릭이벤트는 classList.add, classList.remove를 사용하여 background-position을 조작하여 바뀌게 하였습니다.
+        각 칸을 클릭했을때 해당 칸의 rowIndex , colIndex를 받아와서 해당 칸과 대응하는 dataset 배열과 비교하여 주변 8칸에 지뢰가 없다면
+        그 주변칸이 클릭되지 않았다면 클릭하고 각칸에 주변지뢰 개수를 표시하도록 하였습니다.
     </div>
     <script>
         function Level(level){
@@ -83,7 +96,7 @@
         let allTd = [];
         let winCount = 0;
         let stopFlag = false;
-        
+        let mineList = [];      
         // let mineArr = [];
 
         document.querySelectorAll('.level li').forEach( (ele, index) => {
@@ -99,6 +112,7 @@
 
         document.querySelector('.btn-start').addEventListener('click',() => {
             stopFlag = false;
+            mineList = [];
             document.querySelector('#contents .board').innerHTML = '';
             dataset = [];
             document.querySelectorAll('.level li').forEach( (ele,index) => {
@@ -132,7 +146,8 @@
                 const colIndex = (ranNum%curLevel.col);
 
                 dataset[rowIndex][colIndex] = 'X';
-                document.querySelector('.board').children[rowIndex].children[colIndex].textContent = 'X';
+                mineList.push(ranNum);
+                // document.querySelector('.board').children[rowIndex].children[colIndex].textContent = 'X';
             }
         }
         const rClick = e => {// 우클릭시
@@ -232,6 +247,37 @@
             }
             
         }
+        const test = document.querySelector('#test');
+        test.addEventListener('change',function(e){ // 테스트모드 클릭시 지뢰위치 보여줌.
+                e.preventDefault();
+                if(test.checked){     
+                    mineList.forEach(ele => {
+                        const rowIndex = parseInt(ele/curLevel.col);
+                        const colIndex = (ele%curLevel.col);
+                        board.children[rowIndex].children[colIndex].textContent = 'X';
+                    })               
+                    // for( var i = 0; i < mineList.length; i++){                        
+                    //     var row = Math.floor(mineList[i]/curLevel.col);
+                    //     var col = mineList[i]%curLevel.col;
+                    //     // board.children[row].children[col].textContent = 'X';
+                    //     // console.log
+                    // }
+                    console.log('checked');
+                }else{
+                    // for( var i = 0; i < mineList.length; i++){                        
+                    //     var row = Math.floor(mineList[i]/curLevel.col);
+                    //     var col = mineList[i]%curLevel.col;
+                    //     // board.children[row].children[col].textContent = '';
+                        
+                    // }
+                    console.log('unchecked');
+                    mineList.forEach(ele => {
+                        const rowIndex = parseInt(ele/curLevel.col);
+                        const colIndex = (ele%curLevel.col);
+                        board.children[rowIndex].children[colIndex].textContent = '';
+                    })
+                }
+            });
         const numbering = (target, nearMineCount) => {
             //클릭시 주변 지뢰 개수에 대응하는 background-position으로 바꿔주는 함수
             if(nearMineCount === 1){
