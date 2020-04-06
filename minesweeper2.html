@@ -5,7 +5,8 @@
     <meta charset="UTF-8">
     <title>Document</title>
     <style>
-        body { display:flex; flex-direction: column; background: #21252c; color: #fff; display: flex; justify-content: center; align-items: center;}
+        @font-face { font-family: 'S-CoreDream-2ExtraLight'; src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-2ExtraLight.woff') format('woff'); font-weight: normal; font-style: normal; }
+        body { background: #21252c; font-family: 'S-CoreDream-2ExtraLight'; color: #fff;}
         ul,li,ol { list-style: none;}
         #desc { display: block;}
         #menu { display: inline-block;}
@@ -50,6 +51,7 @@
         
         #test { position: absolute; top: 0; right: -120px;}
         #result { font-size: 30px; font-weight: bold; padding-left: 110px;}
+        .desc { /* position: fixed; right: 10vw; top: 5vw; */ font-size: 2vw; width: 90vw; padding: 0 4vw; margin-top: 2vw;}
     </style>
 </head>
 <body>
@@ -87,6 +89,9 @@
     </div>       
     <table></table>
     <div id="result"></div>
+    <div class="desc">
+        난이도에 따라 9x9, 16x16, 16x30 로 되어있으며 난이도 선택 후 시작버튼 클릭시 각각에 li의 data값을 받아와 생성자함수를 통해 난이도에 따른 객체를 생성하여 데이터를 가져오게 했습니다. table태그를 선택하여 javascript로 tr과 td를 추가하였으며 boolean변수를 써서 true라면 게임이 끝난것으로 간주하여 모든 이벤트가 동작불가하게 하고 false시 정상적으로 클릭 이벤트가 동작하도록 하였습니다. 모든 클릭이벤트는 classList.add, classList.remove를 사용하여 background-position을 조작하여 바뀌게 하였습니다. 각 칸을 클릭했을때 해당 칸의 rowIndex , colIndex를 받아와서 해당 칸과 대응하는 dataset 배열과 비교하여 주변 8칸에 지뢰가 없다면 그 주변칸이 클릭되지 않았다면 클릭하고 각칸에 주변지뢰 개수를 표시하도록 하였습니다.
+    </div>
     
     <script>
         
