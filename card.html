@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        @font-face { font-family: 'S-CoreDream-2ExtraLight'; src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-2ExtraLight.woff') format('woff'); font-weight: normal; font-style: normal; }
+
+        body { background: #21252c; display: flex; justify-content: center; align-items: center; flex-direction:column;} 
+        #wrap { width: 360px;}
+        #btn {/* position: absolute; left: 50%; top: %; */ transition: all .3s; font-size: 25px;}
+        #btn.start { top: 51%; font-size: 16px;}
+        .result { width: 360px; text-align: center; font-size: 30px; font-weight: bold; margin-top: 25px;}
+        .card { width: 70px; height: 107px; perspective: 600px; display: inline-block; margin: 0 10px 10px; }
+        .card.flipped .card-inner { transform: rotateY(-180deg);}
+        .card-inner { position: relative; width: 100%; height: 100%; transform-style: preserve-3d;  transition: all .4s; border-radius: 5px; border: 1px solid #bebebe;}
+        .card-front, .card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; }
+        .card-front { background: url('./images/cardback.png') no-repeat center;}
+        .card-back { transform: rotateY(180deg);}
+
+        .desc { position: fixed; bottom: 5vw; left: 50%; transform: translateX(-50%); font-family: 'S-CoreDream-2ExtraLight'; color: #fff; font-size: 2vw;}
+
+    </style>
+</head>
+<body>
+    <!-- <div class="desc">
+        Lorem ipsum dolor sit amet, consectetur adipisicing elit. Beatae debitis, nihil recusandae ut deleniti ullam quam sint perferendis vitae laudantium natus provident sapiente quas repudiandae accusamus veniam harum nisi fugiat.
+    </div> -->
+    <script>
+        const CARD_COUNT = 12;
+        let FLIP_COUNT = 0;
+        let COMPARE_CARD = [];
+        let OPENED_CARD = [];
+        let CLICK_FLAG = false;
+        let colorList = ['red','red','orange','orange','yellow','yellow','green','green','blue','blue','purple','purple'];
+        let color = [];
+        let colorBackup = colorList.slice();
+        let startTime;
+        const wrap = document.createElement('div');
+        wrap.setAttribute('id','wrap');
+        document.body.appendChild(wrap);
+        const btn = document.createElement('button');
+        btn.setAttribute('id','btn');
+        btn.textContent = 'Start';
+        document.body.appendChild(btn);
+        const result = document.createElement('div');
+        result.className = 'result';
+        document.body.appendChild(result);
+        btn.addEventListener('click',(e) => {    
+            if(e.currentTarget.textContent === 'Start'){
+                setColor();
+                setCard();    
+                e.currentTarget.classList.add('start');
+                e.currentTarget.textContent = 'restart';
+            }else if(e.currentTarget.textContent === 'restart'){        
+                wrap.innerHTML = '';
+                result.textContent = '';
+                OPENED_CARD = [];
+                color = [];
+                colorList = colorBackup.slice();
+                setColor();
+                setCard();
+            }
+            console.log('color',color);
+            console.log('colorList',colorList);
+        });
+
+
+        function setColor(){
+            for( let i = 0; 0 < colorList.length; i++){
+                color = color.concat(colorList.splice(Math.floor(Math.random()*colorList.length),1)[0]);
+            }
+        }
+
+
+        console.log('color',color);
+        console.log('colorList',colorList)
+        console.log(OPENED_CARD);
+        console.log(COMPARE_CARD);
+        function setCard(){
+            for( let i = 0; i < CARD_COUNT; i++){    
+                const card = document.createElement('div');
+                card.className = 'card';
+                wrap.appendChild(card);
+                const cardInner = document.createElement('div');
+                cardInner.className = 'card-inner';
+                card.appendChild(cardInner);
+                const cardFront = document.createElement('div');
+                cardFront.className = 'card-front';
+                cardInner.appendChild(cardFront);
+                const cardBack = document.createElement('div');
+                cardBack.className = 'card-back';
+                cardBack.style.background = color[i];
+                cardInner.appendChild(cardBack);
+                card.addEventListener('click', e => {
+                    if(CLICK_FLAG && !OPENED_CARD.includes(e.currentTarget) ){            
+                        e.currentTarget.classList.toggle('flipped');            
+                        COMPARE_CARD.push(e.currentTarget);
+                        console.log('OPENED_CARD',OPENED_CARD);
+                        console.log('COMPARE_CARD',COMPARE_CARD);
+                        // FLIP_COUNT++;
+                        if(COMPARE_CARD.length === 2){
+                            CLICK_FLAG = false;
+                            if(COMPARE_CARD[0] === COMPARE_CARD[1]){
+                                COMPARE_CARD = [];
+                                CLICK_FLAG = true;
+                            }else{
+                                if(COMPARE_CARD[0].querySelector('.card-back').style.background !== COMPARE_CARD[1].querySelector('.card-back').style.background){
+                                    console.log('다름');
+                                    setTimeout(() => {
+                                        COMPARE_CARD.forEach( ele => ele.classList.remove('flipped'));
+                                        COMPARE_CARD = [];
+                                        CLICK_FLAG = true;
+                                    }, 500);                    
+                                }else{
+                                    OPENED_CARD = OPENED_CARD.concat(COMPARE_CARD[0],COMPARE_CARD[1]);
+                                    if(OPENED_CARD.length === 12){
+                                        CLICK_FLAG = false;
+                                        const endTime = new Date();
+                                        const time = endTime -startTime;
+                                        setTimeout(() => {                                     
+                                            result.textContent = '축하합니다^^ 소요시간은'+ (time/1000) +'초 입니다.';
+                                            console.log('승리');
+                                            COMPARE_CARD = [];
+                                            OPENED_CARD = [];
+                                        }, 500);
+                                        return;                            
+                                    }    
+                                    console.log('같음');
+                                    CLICK_FLAG = true;
+                                    COMPARE_CARD = [];    
+                                }
+                            }                    
+                        }
+                    }
+                });
+            
+                const allCard = document.querySelectorAll('.card');
+                allCard.forEach( ( ele, index ) => {
+                    setTimeout(() => {
+                        ele.classList.add('flipped');
+                    }, index*70);
+                });
+            
+                allCard.forEach( ele => {
+                    setTimeout( () => {
+                        ele.classList.remove('flipped');
+                        CLICK_FLAG = true;
+                        startTime = new Date();
+                    }, 3000);
+                });
+            }
+        }
+    </script>
+</body>
+</html>
